@@ -40,20 +40,11 @@ public class CollectionWatcher implements Closeable {
           if (document == null)
             return;
 
-          switch (operationType) {
-            case INSERT:
-              Payload payload = new Payload(document);
-              System.out.println("Insert - Payload: " + payload);
-              break;
-            case UPDATE:
-              System.out.println("Updated: " + document);
-              break;
-            case DELETE:
-              System.out.println("Deleted: " + document);
-              break;
-            case REPLACE:
-              System.out.println("Replaced: " + document);
-              break;
+          if (operationType == OperationType.INSERT) {
+            System.out.println(document.toJson());
+            long time = document.getDate("payload:send").getTime();
+            long dur = (System.currentTimeMillis() - time);
+            System.out.println("received=" + dur + "ms");
           }
         }));
 
@@ -72,13 +63,14 @@ public class CollectionWatcher implements Closeable {
     }
   }
 
-  private static class ThreadInterrupter implements Thread.UncaughtExceptionHandler {
-    @Override
-    public void uncaughtException(Thread t, Throwable e) {
-      System.err.println("Thread " +
-              t.getName() +
-              " threw an exception: " +
-              e.getMessage());
+  private static class ThreadInterrupter
+    implements Thread.UncaughtExceptionHandler {
+      @Override
+      public void uncaughtException(Thread t, Throwable e) {
+        System.err.println("Thread " +
+          t.getName() +
+          " threw an exception: " +
+          e.getMessage());
+        }
     }
-  }
 }
