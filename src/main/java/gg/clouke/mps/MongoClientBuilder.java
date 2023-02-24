@@ -1,7 +1,9 @@
 package gg.clouke.mps;
 
 import gg.acai.acava.Requisites;
+import gg.acai.acava.annotated.Optionally;
 
+import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -14,11 +16,13 @@ public class MongoClientBuilder {
   protected long flushAfterWrite = 5L;
   protected TimeUnit flushUnit = TimeUnit.SECONDS;
 
-  protected String host = "localhost";
+  protected String host;
   protected int port = 27017;
   protected String username;
   protected String password;
   protected String database;
+
+  @Optionally
   protected String uri;
 
   /**
@@ -32,6 +36,8 @@ public class MongoClientBuilder {
   }
 
   public MongoClientBuilder disableFlushing() {
+    if (flushAfterWrite != 5L)
+      throw new IllegalStateException("Cannot disable flushing after it has been enabled.");
     this.flushAfterWrite = -1L;
     return this;
   }
@@ -61,16 +67,21 @@ public class MongoClientBuilder {
     return this;
   }
 
+  @Optionally
   public MongoClientBuilder uri(String uri) {
     this.uri = uri;
+    return this;
+  }
+
+  public MongoClientBuilder uri(URI uri) {
+    this.uri = uri.toString();
     return this;
   }
 
   public MongoPubSubClient build() {
     if (uri == null) {
       // If the uri is not set, we need to check if the other fields are set.
-      Requisites.requireNonNull(host, "host");
-      Requisites.requireNonNull(port, "port");
+      Requisites.requireNonNull(host, "host cannot be null. use uri() to set the uri, or set the host, port, username, password and database fields.");
     }
 
     return new MongoPubSubClient(this);
