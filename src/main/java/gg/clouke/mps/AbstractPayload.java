@@ -20,6 +20,7 @@ public abstract class AbstractPayload implements Closeable {
 
   protected static final Gson GSON = GsonSpec.getGson();
   private static final int MAX_SIZE = 16 * (1024 * 1024);
+
   private static final Encoder<Map<String, String>, String> ENCODER =
     new Encoder<Map<String, String>, String>() {
       @Override
@@ -91,6 +92,15 @@ public abstract class AbstractPayload implements Closeable {
   public String toString() {
     synchronized (parameters) {
       return ENCODER.encode(parameters);
+    }
+  }
+
+  @Nonnull
+  public String toPrettyJson() {
+    synchronized (parameters) {
+      return GsonSpec.getPrettyPrintingGson()
+        .toJson(parameters, GsonSpec.getPayloadToken()
+          .getType());
     }
   }
 
