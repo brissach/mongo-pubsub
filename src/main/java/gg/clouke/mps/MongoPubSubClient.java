@@ -10,9 +10,12 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import gg.acai.acava.annotated.Use;
+import gg.acai.acava.io.Closeable;
 import org.bson.Document;
 
+import javax.annotation.Nonnull;
 import java.util.Collections;
+import java.util.Date;
 
 /**
  * @author Clouke
@@ -20,26 +23,67 @@ import java.util.Collections;
  * © mongo-pubsub - All Rights Reserved
  */
 @Use("Use MongoClientBuilder to create a new instance of this class.")
-public class MongoPubSubClient {
+public final class MongoPubSubClient implements Closeable {
 
+  private static MongoPubSubClient instance;
+
+  public static MongoPubSubClient getInstance() {
+    return instance;
+  }
+
+  public static MongoClientBuilder newBuilder() {
+    return new MongoClientBuilder();
+  }
+
+  private final CollectionWatcher watcher;
+  private final MongoClient client;
   private final MongoCollection<Document> publishers;
 
   public MongoPubSubClient(MongoClientBuilder b) {
-    MongoClientSettings settings = doBuildProcedure(b);
-    try (MongoClient client = MongoClients.create(settings)) {
-      publishers = client
-        .getDatabase(b.database)
-        .getCollection("publishers");
+    if (instance != null)
+      throw new IllegalStateException("MongoPubSubClient is already initialized.");
 
-      if (b.flushAfterWrite != -1L) {
-        publishers.createIndex(Indexes
-          .ascending("_time"), new IndexOptions()
-          /*
-           * Automatically flush payloads that are older than the specified time.
-           */
-          .expireAfter(b.flushAfterWrite, b.flushUnit));
-      }
+    instance = this;
+    MongoClientSettings settings = doBuildProcedure(b);
+    MongoClient client = MongoClients.create(settings);
+    this.client = client;
+    publishers = client
+      .getDatabase(b.database)
+      .getCollection("publishers");
+
+    if (b.flushAfterWrite != -1L) {
+      publishers.createIndex(Indexes
+        .ascending("payload::send"), new IndexOptions()
+        /*
+         * Automatically flush payloads that are older than the specified time.
+         */
+        .expireAfter(b.flushAfterWrite, b.flushUnit));
     }
+
+    this.watcher = new CollectionWatcher(this);
+  }
+
+  @Nonnull
+  public MongoClient client() {
+    return client;
+  }
+
+  @Nonnull
+  public MongoCollection<Document> publishers() {
+    return publishers;
+  }
+
+  @Nonnull
+  public CollectionWatcher watcher() {
+    return watcher;
+  }
+
+  public void enqueue(String target, Payload payload) {
+    Document document = payload.asDocument()
+      .append("payload:target", target)
+      .append("payload:send", new Date());
+
+    publishers.insertOne(document);
   }
 
   private MongoClientSettings doBuildProcedure(MongoClientBuilder b) {
@@ -55,8 +99,12 @@ public class MongoPubSubClient {
     return builder.build();
   }
 
-  public MongoCollection<Document> publishers() {
-    return publishers;
+  @Override
+  public void close() {
+    synchronized (this) {
+      publishers.drop(); // Drop the collection to prevent storing payloads.
+      watcher.close();
+      client.close();
+    }
   }
-
 }
