@@ -1,5 +1,6 @@
 package gg.clouke.mps;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.mongodb.client.ChangeStreamIterable;
 import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.FullDocument;
@@ -8,6 +9,7 @@ import gg.acai.acava.io.Closeable;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
 /**
@@ -24,7 +26,13 @@ public class ClusterWatcher implements Closeable {
       .watch()
       .fullDocument(FullDocument.UPDATE_LOOKUP);
 
-    executor = new Thread(() ->
+    ThreadFactory factory = new ThreadFactoryBuilder()
+      .setPriority(Thread.MAX_PRIORITY)
+      .setNameFormat("ClusterWatcher-%d")
+      .setUncaughtExceptionHandler(new ThreadInterrupter())
+      .build();
+
+    executor = factory.newThread(() ->
       observer.forEach((Consumer<? super ChangeStreamDocument<Document>>)
         change -> {
           OperationType operationType = change.getOperationType();
@@ -56,6 +64,16 @@ public class ClusterWatcher implements Closeable {
   public void close() {
     synchronized (executor) {
       executor.interrupt();
+    }
+  }
+
+  private static class ThreadInterrupter implements Thread.UncaughtExceptionHandler {
+    @Override
+    public void uncaughtException(Thread t, Throwable e) {
+      System.err.println("Thread " +
+              t.getName() +
+              " threw an exception: " +
+              e.getMessage());
     }
   }
 }
