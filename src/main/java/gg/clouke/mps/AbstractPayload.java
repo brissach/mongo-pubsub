@@ -3,9 +3,12 @@ package gg.clouke.mps;
 import com.google.gson.Gson;
 import gg.acai.acava.collect.maps.FixedSizeHashMap;
 import gg.acai.acava.io.Closeable;
+import gg.clouke.mps.codec.Encoder;
 import org.bson.Document;
 
+import javax.annotation.Nonnull;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
@@ -15,8 +18,17 @@ import java.util.stream.Stream;
  */
 public abstract class AbstractPayload implements Closeable {
 
-  private static final int MAX_SIZE = 16 * (1024 * 1024);
   protected static final Gson GSON = GsonSpec.getGson();
+  private static final int MAX_SIZE = 16 * (1024 * 1024);
+  private static final Encoder<Map<String, String>, String> ENCODER =
+    new Encoder<Map<String, String>, String>() {
+      @Override
+      public String encode(Map<String, String> s) {
+        return GSON.toJson(s, GsonSpec.getPayloadToken()
+          .getType());
+      }
+    };
+
   protected final Map<String, String> parameters;
 
   public AbstractPayload(String json) {
@@ -26,11 +38,16 @@ public abstract class AbstractPayload implements Closeable {
         .getType());
   }
 
+  public AbstractPayload(Document document) {
+    this(document.toJson());
+  }
+
   public AbstractPayload() {
     this.parameters = new FixedSizeHashMap<>(MAX_SIZE);
   }
 
-  public Document toDocument() {
+  @Nonnull
+  public Document asDocument() {
     synchronized (parameters) {
       Document document = new Document();
       document.putAll(parameters);
@@ -38,6 +55,7 @@ public abstract class AbstractPayload implements Closeable {
     }
   }
 
+  @Nonnull
   public Map<String, String> asMap() {
     return parameters;
   }
@@ -46,14 +64,33 @@ public abstract class AbstractPayload implements Closeable {
     return parameters.size();
   }
 
+  @Nonnull
   public Stream<Map.Entry<String, String>> stream() {
     return parameters.entrySet().stream();
+  }
+
+  @Nonnull
+  public <R> Stream<R> flatMap(Function<? super Map.Entry<String, String>, ? extends Stream<? extends R>> mapper) {
+    synchronized (parameters) {
+      return parameters.entrySet()
+        .stream()
+        .flatMap(mapper);
+    }
+  }
+
+  @Nonnull
+  public <R> Stream<R> map(Function<? super Map.Entry<String, String>, ? extends R> mapper) {
+    synchronized (parameters) {
+      return parameters.entrySet()
+        .stream()
+        .map(mapper);
+    }
   }
 
   @Override
   public String toString() {
     synchronized (parameters) {
-      return GSON.toJson(parameters);
+      return ENCODER.encode(parameters);
     }
   }
 
