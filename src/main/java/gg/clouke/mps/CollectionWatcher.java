@@ -17,11 +17,11 @@ import java.util.function.Consumer;
  * @since 24.02.2023 05:41
  * © mongo-pubsub - All Rights Reserved
  */
-public class ClusterWatcher implements Closeable {
+public class CollectionWatcher implements Closeable {
 
   private final Thread executor;
 
-  public ClusterWatcher(MongoPubSubClient client) {
+  public CollectionWatcher(MongoPubSubClient client) {
     ChangeStreamIterable<Document> observer = client.publishers()
       .watch()
       .fullDocument(FullDocument.UPDATE_LOOKUP);
