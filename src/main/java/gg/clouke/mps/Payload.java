@@ -2,6 +2,7 @@ package gg.clouke.mps;
 
 import com.google.gson.reflect.TypeToken;
 import gg.acai.acava.collect.pairs.Pairs;
+import org.bson.Document;
 
 /**
  * @author Clouke
@@ -10,6 +11,19 @@ import gg.acai.acava.collect.pairs.Pairs;
  */
 public final class Payload extends AbstractPayload {
 
+  public Payload(String json) {
+    super(json);
+  }
+
+  public Payload(Document document) {
+    super(document);
+  }
+
+  public Payload() {
+    super();
+  }
+
+  @Deprecated
   public <K, V> Payload with(KeyValue<K, V> kv) {
     Pairs<String, String> pair = kv.pair();
     return withRawParameter(pair.left(), pair.right());
