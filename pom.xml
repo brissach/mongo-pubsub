@@ -64,6 +64,7 @@
       <groupId>gg.acai</groupId>
       <artifactId>acava-common</artifactId>
       <version>1.0</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 
