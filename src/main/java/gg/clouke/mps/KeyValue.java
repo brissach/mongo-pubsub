@@ -1,7 +1,7 @@
 package gg.clouke.mps;
 
 import com.google.gson.Gson;
-import gg.acai.acava.collect.Mutability;
+import gg.acai.acava.collect.pairs.ImmutablePair;
 import gg.acai.acava.collect.pairs.Pairs;
 
 /**
@@ -29,7 +29,7 @@ public class KeyValue<K, V> {
 
   public Pairs<String, String> pair() {
     Gson gson = GsonSpec.getGson();
-    return Pairs.of(Mutability.IMMUTABLE,
+    return new ImmutablePair<>(
       gson.toJson(key, key.getClass()),
       gson.toJson(value, value.getClass())
     );
