@@ -21,14 +21,14 @@ public class MongoPubSubClient {
 
   public MongoPubSubClient(String host, int port, String username, String password, String database) {
     MongoClientSettings settings = MongoClientSettings.builder()
-            .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(new ServerAddress(host, port))))
-            .credential(MongoCredential.createCredential(username, database, password.toCharArray()))
-            .build();
+      .applyToClusterSettings(builder -> builder.hosts(Collections.singletonList(new ServerAddress(host, port))))
+      .credential(MongoCredential.createCredential(username, database, password.toCharArray()))
+      .build();
 
     try (MongoClient client = MongoClients.create(settings)) {
-      this.publishers = client
-              .getDatabase(database)
-              .getCollection("publishers");
+      publishers = client
+        .getDatabase(database)
+        .getCollection("publishers");
     }
   }
 
