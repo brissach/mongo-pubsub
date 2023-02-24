@@ -28,7 +28,7 @@ public class CollectionWatcher implements Closeable {
 
     ThreadFactory factory = new ThreadFactoryBuilder()
       .setPriority(Thread.MAX_PRIORITY)
-      .setNameFormat("ClusterWatcher-%d")
+      .setNameFormat("CollectionWatcher-%d")
       .setUncaughtExceptionHandler(new ThreadInterrupter())
       .build();
 
@@ -42,12 +42,17 @@ public class CollectionWatcher implements Closeable {
 
           switch (operationType) {
             case INSERT:
-              if (document.containsKey("packet::schema")) {
-                System.out.println("Schema: " + document);
-              }
+              Payload payload = new Payload(document);
+              System.out.println("Insert - Payload: " + payload);
+              break;
+            case UPDATE:
+              System.out.println("Updated: " + document);
               break;
             case DELETE:
-              System.out.println("Dropped: " + document);
+              System.out.println("Deleted: " + document);
+              break;
+            case REPLACE:
+              System.out.println("Replaced: " + document);
               break;
           }
         }));
