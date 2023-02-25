@@ -30,13 +30,19 @@ public abstract class AbstractPayload implements Closeable {
       }
     };
 
+  private static final Encoder<String, Map<String, String>> DECODER =
+    new Encoder<String, Map<String, String>>() {
+      @Override @SuppressWarnings("unchecked")
+      public Map<String, String> encode(String s) {
+        return GSON.fromJson(s, Map.class);
+      }
+    };
+
   protected final Map<String, String> parameters;
 
+  @SuppressWarnings("unchecked")
   public AbstractPayload(String json) {
-    this.parameters = GSON
-      .fromJson(json, GsonSpec
-        .getPayloadToken()
-        .getType());
+    this.parameters = DECODER.encode(json);
   }
 
   public AbstractPayload(Document document) {
@@ -57,8 +63,12 @@ public abstract class AbstractPayload implements Closeable {
   }
 
   @Nonnull
-  public Map<String, String> asMap() {
-    return parameters;
+  public Map<String, Object> asMap() {
+    Map<String, Object> map = new FixedSizeHashMap<>(MAX_SIZE);
+    synchronized (parameters) {
+      map.putAll(parameters);
+    }
+    return map;
   }
 
   public int size() {
