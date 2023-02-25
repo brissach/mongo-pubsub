@@ -25,10 +25,10 @@ import java.util.Date;
 @Use("Use MongoClientBuilder to create a new instance of this class.")
 public final class MongoPubSubClient implements Closeable {
 
-  private static MongoPubSubClient instance;
+  private static MongoPubSubClient INSTANCE;
 
   public static MongoPubSubClient getInstance() {
-    return instance;
+    return INSTANCE;
   }
 
   public static MongoClientBuilder newBuilder() {
@@ -38,12 +38,13 @@ public final class MongoPubSubClient implements Closeable {
   private final CollectionWatcher watcher;
   private final MongoClient client;
   private final MongoCollection<Document> publishers;
+  private final Subscribers subscribers;
 
   public MongoPubSubClient(MongoClientBuilder b) {
-    if (instance != null)
+    if (INSTANCE != null)
       throw new IllegalStateException("MongoPubSubClient is already initialized.");
 
-    instance = this;
+    INSTANCE = this;
     MongoClientSettings settings = doBuildProcedure(b);
     MongoClient client = MongoClients.create(settings);
     this.client = client;
@@ -53,7 +54,7 @@ public final class MongoPubSubClient implements Closeable {
 
     if (b.flushAfterWrite != -1L) {
       publishers.createIndex(Indexes
-        .ascending("payload::send"), new IndexOptions()
+        .ascending("payload:send"), new IndexOptions()
         /*
          * Automatically flush payloads that are older than the specified time.
          */
@@ -61,6 +62,7 @@ public final class MongoPubSubClient implements Closeable {
     }
 
     this.watcher = new CollectionWatcher(this);
+    this.subscribers = new Subscribers();
   }
 
   @Nonnull
@@ -76,6 +78,11 @@ public final class MongoPubSubClient implements Closeable {
   @Nonnull
   public CollectionWatcher watcher() {
     return watcher;
+  }
+
+  @Nonnull
+  public Subscribers subscribers() {
+    return subscribers;
   }
 
   public void enqueue(String target, Payload payload) {
