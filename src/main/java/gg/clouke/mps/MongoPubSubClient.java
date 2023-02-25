@@ -16,6 +16,7 @@ import org.bson.Document;
 import javax.annotation.Nonnull;
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Clouke
@@ -83,6 +84,14 @@ public final class MongoPubSubClient implements Closeable {
   @Nonnull
   public Subscribers subscribers() {
     return subscribers;
+  }
+
+  public MongoPubSubClient updateFlushAfterWrite(long time, TimeUnit unit) {
+    publishers.dropIndex(Indexes.ascending("payload:send"));
+    publishers.createIndex(Indexes
+      .ascending("payload:send"), new IndexOptions()
+      .expireAfter(time, unit));
+    return this;
   }
 
   public void enqueue(String target, Payload payload) {
