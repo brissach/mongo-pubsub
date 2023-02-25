@@ -1,10 +1,13 @@
 package gg.clouke.mps;
 
+import gg.acai.acava.annotated.RequiredAnnotation;
+
 /**
  * @author Clouke
  * @since 25.02.2023 10:32
  * © mongo-pubsub - All Rights Reserved
  */
+@RequiredAnnotation(Identifier.class)
 public interface Subscriber {
 
   void onMessage(Payload payload);
