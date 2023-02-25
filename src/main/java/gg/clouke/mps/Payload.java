@@ -4,12 +4,26 @@ import com.google.gson.reflect.TypeToken;
 import gg.acai.acava.collect.pairs.Pairs;
 import org.bson.Document;
 
+import java.lang.reflect.Type;
+
 /**
  * @author Clouke
  * @since 24.02.2023 06:15
  * © mongo-pubsub - All Rights Reserved
  */
 public final class Payload extends AbstractPayload {
+
+  public static Payload fromJson(String json) {
+    return new Payload(json);
+  }
+
+  public static Payload fromDocument(Document document) {
+    return new Payload(document);
+  }
+
+  public static Payload empty() {
+    return new Payload();
+  }
 
   public Payload(String json) {
     super(json);
@@ -34,9 +48,18 @@ public final class Payload extends AbstractPayload {
     return this;
   }
 
-  public Payload withSerializedParameter(String key, Object value) {
-    parameters.put(key, GSON.toJson(value));
+  public Payload withSerializableParameter(String key, Object value) {
+    parameters.put(key, GSON.toJson(value, value.getClass()));
     return this;
+  }
+
+  public Payload withSerializableParameter(String key, Object value, Type type) {
+    parameters.put(key, GSON.toJson(value, type));
+    return this;
+  }
+
+  public Payload withSerializableParameter(String key, Object value, TypeToken<?> typeToken) {
+    return withSerializableParameter(key, value, typeToken.getType());
   }
 
   public String getRawValue(String key) {
