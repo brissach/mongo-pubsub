@@ -43,8 +43,6 @@ public class CollectionWatcher implements Closeable {
             return;
 
           if (operationType == OperationType.INSERT) {
-            //long time = document.getDate("payload:send").getTime();
-            //long dur = (System.currentTimeMillis() - time);
             Payload payload = new Payload(document.toJson());
             client.subscribers().dispatch(document.getString("payload:target"), payload);
           }
