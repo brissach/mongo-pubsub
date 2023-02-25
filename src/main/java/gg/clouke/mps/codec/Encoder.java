@@ -20,17 +20,10 @@ public abstract class Encoder<E, R> {
     };
   }
 
-  protected static final Encoder<String, String> IDENTITY = new Encoder<String, String>() {
-    @Override
-    public String encode(String s) {
-      return s;
-    }
-  };
-
   protected static final Encoder<String, Payload> PAYLOAD = new Encoder<String, Payload>() {
     @Override
     public Payload encode(String s) {
-      return new Payload(s);
+      return Payload.fromJson(s);
     }
   };
 
