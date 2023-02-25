@@ -34,8 +34,12 @@ public final class Subscribers {
   }
 
   void dispatch(String identifier, Payload payload) {
-    if (subscribers.containsKey(identifier))
+    if (subscribers.containsKey(identifier)) {
       subscribers.get(identifier).onMessage(payload);
+      return;
+    }
+
+    throw new RuntimeException("Attempted to dispatch message to non-existent subscriber " + identifier + " with payload " + payload);
   }
 
   public Map<String, Subscriber> getSubscribers() {
