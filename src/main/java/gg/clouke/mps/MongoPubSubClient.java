@@ -9,6 +9,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+import gg.acai.acava.Requisites;
 import gg.acai.acava.annotated.Use;
 import gg.acai.acava.io.Closeable;
 import org.bson.Document;
@@ -94,7 +95,8 @@ public final class MongoPubSubClient implements Closeable {
     return this;
   }
 
-  public void enqueue(String target, Payload payload) {
+  public void enqueue(@Nonnull String target, Payload payload) {
+    Requisites.requireNonNull(target, "target cannot be null.");
     Document document = payload.asDocument()
       .append("payload:target", target)
       .append("payload:send", new Date());
