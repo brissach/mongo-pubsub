@@ -20,12 +20,16 @@ public abstract class Encoder<E, R> {
     };
   }
 
-  protected static final Encoder<String, Payload> PAYLOAD = new Encoder<String, Payload>() {
+  private static final Encoder<String, Payload> PAYLOAD = new Encoder<String, Payload>() {
     @Override
     public Payload encode(String s) {
       return Payload.fromJson(s);
     }
   };
+
+  public static Encoder<String, Payload> payload() {
+    return PAYLOAD;
+  }
 
 
 }
