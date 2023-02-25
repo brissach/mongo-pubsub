@@ -35,17 +35,22 @@ public class CollectionWatcher implements Closeable {
     executor = factory.newThread(() ->
       observer.forEach((Consumer<? super ChangeStreamDocument<Document>>)
         change -> {
+        try {
+
           OperationType operationType = change.getOperationType();
           Document document = change.getFullDocument();
           if (document == null)
             return;
 
           if (operationType == OperationType.INSERT) {
-            System.out.println(document.toJson());
-            long time = document.getDate("payload:send").getTime();
-            long dur = (System.currentTimeMillis() - time);
-            System.out.println("received=" + dur + "ms");
+            //long time = document.getDate("payload:send").getTime();
+            //long dur = (System.currentTimeMillis() - time);
+            Payload payload = new Payload(document.toJson());
+            client.subscribers().dispatch(document.getString("payload:target"), payload);
           }
+        } catch (Exception e) {
+          e.printStackTrace();
+        }
         }));
 
     executor.start();
