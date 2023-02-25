@@ -54,7 +54,7 @@ public class ConnectionAndPayload {
             .append(rawValue) // Should be "World!"
             .append("\n")
             .append("- Serializable Value: ")
-            .append(serializableValue); // Should be "SerializableTestObject{name='Hello', age=44}"
+            .append(serializableValue); // Should be "SerializableTestObject{name='Jonathan', age=20}"
 
           System.out.println(output);
           payload.close();
@@ -62,7 +62,7 @@ public class ConnectionAndPayload {
 
     client.enqueue("my-listener", Payload.empty()
       .withRawParameter("Hello", "World!")
-      .withSerializableParameter("SerializedObject", new SerializableTestObject("Hello", 44)));
+      .withSerializableParameter("SerializedObject", new SerializableTestObject("Jonathan", 20)));
   }
 
 }
