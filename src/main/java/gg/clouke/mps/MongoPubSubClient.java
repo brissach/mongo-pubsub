@@ -58,7 +58,7 @@ public final class MongoPubSubClient implements Closeable {
       publishers.createIndex(Indexes
         .ascending("payload:send"), new IndexOptions()
         /*
-         * Automatically flush payloads that are older than the specified time.
+         * automatically flush payloads that are older than the specified time.
          */
         .expireAfter(b.flushAfterWrite, b.flushUnit));
     }
@@ -96,8 +96,19 @@ public final class MongoPubSubClient implements Closeable {
   }
 
   public long flush() {
-    long size = publishers.countDocuments();
-    publishers.drop();
+    long size = -1L;
+    boolean count = false;
+    synchronized (this) {
+      try {
+        size = publishers.countDocuments();
+        count = true;
+      } catch (Exception e) {
+        e.printStackTrace();
+      } finally {
+        if (count) publishers.drop();
+      }
+    }
+
     return size;
   }
 
@@ -126,7 +137,14 @@ public final class MongoPubSubClient implements Closeable {
   @Override
   public void close() {
     synchronized (this) {
-      publishers.drop(); // Drop the collection to prevent storing payloads.
+      /*
+       * drop the collection to prevent storing payloads.
+       * especially if the client doesn't have a flush procedure.
+       */
+      publishers.drop();
+      /*
+       * finally, close the watcher & client.
+       */
       watcher.close();
       client.close();
     }
