@@ -47,6 +47,7 @@ public class CollectionWatcher implements Closeable {
             Payload payload = new Payload(document.toJson());
             String target = document.getString("payload:target");
             client.subscribers().dispatch(target, payload);
+            // TODO: Add to graph statistics
             if (waiter.isAwaitTermination()) {
               waiter.reset();
               synchronized (waiter) {
