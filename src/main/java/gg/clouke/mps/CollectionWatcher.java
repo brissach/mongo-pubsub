@@ -28,6 +28,9 @@ import java.util.function.Consumer;
  */
 public class CollectionWatcher implements Closeable {
 
+  /**
+   * Standard encoder converting a MongoDB document to a Json string.
+   */
   private static final Encoder<Document, String> ENCODER =
     new Encoder<Document, String>() {
       @Override
