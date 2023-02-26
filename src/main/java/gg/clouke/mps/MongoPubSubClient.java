@@ -112,13 +112,14 @@ public final class MongoPubSubClient implements Closeable {
     return size;
   }
 
-  public void enqueue(@Nonnull String target, Payload payload) {
+  public Waiter enqueue(@Nonnull String target, Payload payload) {
     Requisites.requireNonNull(target, "target cannot be null.");
     Document document = payload.asDocument()
       .append("payload:target", target)
       .append("payload:send", new Date());
 
     publishers.insertOne(document);
+    return watcher().waiter();
   }
 
   private MongoClientSettings doBuildProcedure(MongoClientBuilder b) {
