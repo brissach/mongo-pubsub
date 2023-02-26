@@ -30,6 +30,15 @@ public abstract class AbstractPayload implements Closeable {
   private static final int MAX_SIZE = 16 * (1024 * 1024);
 
   /**
+   * Returns the maximum size of the payload in bytes.
+   *
+   * @return the maximum size of the payload in bytes.
+   */
+  public static int getMaxSize() {
+    return MAX_SIZE;
+  }
+
+  /**
    * The encoder used to encode the payload data to a Json string.
    */
   private static final Encoder<Map<String, String>, String> ENCODER =
