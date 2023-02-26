@@ -22,15 +22,18 @@ public class ConnectionAndPayload {
     while (true) {
       try {
         System.out.print("Enter MongoDB URI: ");
-        uri = reader.readLine();
+        uri = reader.readLine(); // apply your own URI here
         System.out.print("Enter MongoDB Database: ");
-        database = reader.readLine();
+        database = reader.readLine(); // apply your own database here
         break;
       } catch (Exception e) {
         e.printStackTrace();
       }
     }
 
+    /*
+     * Connect to the MongoDB instance and create a new client.
+     */
     MongoPubSubClient client = MongoPubSubClient.newBuilder()
       .flushAfterWrite(10L, TimeUnit.SECONDS)
       .uri(uri)
@@ -43,6 +46,9 @@ public class ConnectionAndPayload {
       e.printStackTrace();
     }
 
+    /*
+     * Listen directly to identifier "my-listener"
+     */
     client.subscribers()
       .listenDirectly("my-listener",
         payload -> {
@@ -60,6 +66,7 @@ public class ConnectionAndPayload {
           payload.close();
         });
 
+    // send a payload to the target "my-listener"
     client.enqueue("my-listener", Payload.empty()
       .withRawParameter("Hello", "World!")
       .withSerializableParameter("SerializedObject", new SerializableTestObject("Jonathan", 20)));
