@@ -14,6 +14,14 @@ import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
 /**
+ * An observer that watches for changes in the publisher collection.
+ * Responsible for dispatching the payload to the subscribers.
+ *
+ * <p>Runs on a separate thread, and is responsible for notifying the subscribers of
+ * changes in the publisher collection.
+ * <p>Holds a {@link Waiter} which manipulates the executor thread to
+ * wait for its next payload to be finished before closing the client.
+ *
  * @author Clouke
  * @since 24.02.2023 05:41
  * © mongo-pubsub - All Rights Reserved
@@ -36,6 +44,9 @@ public class CollectionWatcher implements Closeable {
       .watch()
       .fullDocument(FullDocument.UPDATE_LOOKUP);
 
+    /*
+     * Set up the executor thread.
+     */
     ThreadFactory factory = new ThreadFactoryBuilder()
       .setPriority(Thread.MAX_PRIORITY)
       .setNameFormat("CollectionWatcher-%d")
@@ -46,12 +57,12 @@ public class CollectionWatcher implements Closeable {
     executor = factory.newThread(() ->
       observer.forEach((Consumer<? super ChangeStreamDocument<Document>>)
         change -> {
-          OperationType operationType = change.getOperationType();
+          OperationType operation = change.getOperationType();
           Document document = change.getFullDocument();
           if (document == null)
-            return;
+            return; // cannot handle null documents
 
-          if (operationType == OperationType.INSERT) {
+          if (operation == OperationType.INSERT) {
             String parameters = ENCODER.encode(document);
             Payload payload = new Payload(parameters);
             String target = document.getString("payload:target");
@@ -60,7 +71,7 @@ public class CollectionWatcher implements Closeable {
             if (waiter.isAwaitTermination()) {
               waiter.reset();
               synchronized (waiter) {
-                waiter.notifyAll();
+                waiter.notifyAll(); // notify the waiter
               }
             }
           }
@@ -69,11 +80,21 @@ public class CollectionWatcher implements Closeable {
     executor.start();
   }
 
+  /**
+   * Gets the executor thread of this watcher.
+   *
+   * @return the executor thread.
+   */
   @Nonnull
   public Thread executor() {
     return executor;
   }
 
+  /**
+   * Gets the waiter of this watcher.
+   *
+   * @return the waiter.
+   */
   @Nonnull
   public Waiter waiter() {
     synchronized (executor) {
@@ -81,6 +102,13 @@ public class CollectionWatcher implements Closeable {
     }
   }
 
+  /**
+   * Closes this watcher, and interrupts the executor thread.
+   * If the {@link Waiter} is waiting for a payload to finish, the thread will
+   * wait for 1 second until it is interrupted.
+   *
+   * @throws RuntimeException if the thread is interrupted.
+   */
   @Override
   public void close() {
     synchronized (executor) {
@@ -97,6 +125,9 @@ public class CollectionWatcher implements Closeable {
     }
   }
 
+  /**
+   * Thread interrupter that prints the stack trace of the exception occurring
+   */
   private static class ThreadInterrupter
     implements Thread.UncaughtExceptionHandler {
       @Override
