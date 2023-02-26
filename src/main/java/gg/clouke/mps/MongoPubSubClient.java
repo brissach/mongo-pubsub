@@ -194,7 +194,7 @@ public final class MongoPubSubClient implements Closeable {
    * ensure the payload being sent with thread locking
    * before closing the client.
    */
-  @Nonnull
+  @Nonnull @SuppressWarnings("UnusedReturnValue")
   public Waiter enqueue(@Nonnull String target, Payload payload) {
     Requisites.requireNonNull(target, "target cannot be null.");
     Document document = payload.asDocument()
