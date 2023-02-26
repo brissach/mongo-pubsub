@@ -189,7 +189,10 @@ public final class MongoPubSubClient implements Closeable {
    *
    * @param target the target of the payload.
    * @param payload the payload to enqueue.
-   * @return Returns a waiter that can be used to ensure the payload being sent with thread locking before closing the client
+   *
+   * @return Returns a waiter that can be used to
+   * ensure the payload being sent with thread locking
+   * before closing the client.
    */
   public Waiter enqueue(@Nonnull String target, Payload payload) {
     Requisites.requireNonNull(target, "target cannot be null.");
