@@ -7,28 +7,28 @@ import gg.clouke.mps.Payload;
  * @since 24.02.2023 05:39
  * © mongo-pubsub - All Rights Reserved
  */
-public abstract class Encoder<E, R> {
+public abstract class Codec<E, R> {
 
   public abstract R encode(E e);
 
-  public final Encoder<E, R> andThen(Encoder<R, R> after) {
-    return new Encoder<E, R>() {
+  public final Codec<E, R> andThen(Codec<R, R> after) {
+    return new Codec<E, R>() {
       @Override
       public R encode(E e) {
-        return after.encode(Encoder.this.encode(e));
+        return after.encode(Codec.this.encode(e));
       }
     };
   }
 
-  private static final Encoder<String, Payload> PAYLOAD =
-    new Encoder<String, Payload>() {
+  private static final Codec<String, Payload> PAYLOAD =
+    new Codec<String, Payload>() {
       @Override
       public Payload encode(String s) {
         return Payload.fromJson(s);
       }
   };
 
-  public static Encoder<String, Payload> payload() {
+  public static Codec<String, Payload> payload() {
     return PAYLOAD;
   }
 

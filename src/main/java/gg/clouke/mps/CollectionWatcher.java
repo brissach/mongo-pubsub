@@ -6,7 +6,7 @@ import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.client.model.changestream.OperationType;
 import gg.acai.acava.io.Closeable;
-import gg.clouke.mps.codec.Encoder;
+import gg.clouke.mps.codec.Codec;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
@@ -31,8 +31,8 @@ public class CollectionWatcher implements Closeable {
   /**
    * Standard encoder converting a MongoDB document to a Json string.
    */
-  private static final Encoder<Document, String> ENCODER =
-    new Encoder<Document, String>() {
+  private static final Codec<Document, String> CODEC =
+    new Codec<Document, String>() {
       @Override
       public String encode(Document document) {
         return document.toJson();
@@ -66,7 +66,7 @@ public class CollectionWatcher implements Closeable {
             return; // cannot handle null documents
 
           if (operation == OperationType.INSERT) {
-            String parameters = ENCODER.encode(document);
+            String parameters = CODEC.encode(document);
             Payload payload = new Payload(parameters);
             String target = document.getString("payload:target");
             client.subscribers().dispatch(target, payload);

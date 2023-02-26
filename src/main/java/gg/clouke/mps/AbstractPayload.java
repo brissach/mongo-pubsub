@@ -3,7 +3,7 @@ package gg.clouke.mps;
 import com.google.gson.Gson;
 import gg.acai.acava.collect.maps.FixedSizeHashMap;
 import gg.acai.acava.io.Closeable;
-import gg.clouke.mps.codec.Encoder;
+import gg.clouke.mps.codec.Codec;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
@@ -41,8 +41,8 @@ public abstract class AbstractPayload implements Closeable {
   /**
    * The encoder used to encode the payload data to a Json string.
    */
-  private static final Encoder<Map<String, String>, String> ENCODER =
-    new Encoder<Map<String, String>, String>() {
+  private static final Codec<Map<String, String>, String> CODEC =
+    new Codec<Map<String, String>, String>() {
       @Override
       public String encode(Map<String, String> s) {
         return GSON.toJson(s, GsonSpec.getPayloadToken()
@@ -53,8 +53,8 @@ public abstract class AbstractPayload implements Closeable {
   /**
    * The decoder used to decode the payload data from a Json string.
    */
-  private static final Encoder<String, Map<String, String>> DECODER =
-    new Encoder<String, Map<String, String>>() {
+  private static final Codec<String, Map<String, String>> DECODER =
+    new Codec<String, Map<String, String>>() {
       @Override @SuppressWarnings("unchecked")
       public Map<String, String> encode(String s) {
         return GSON.fromJson(s, Map.class);
@@ -163,7 +163,7 @@ public abstract class AbstractPayload implements Closeable {
   @Override
   public String toString() {
     synchronized (parameters) {
-      return ENCODER.encode(parameters);
+      return CODEC.encode(parameters);
     }
   }
 
