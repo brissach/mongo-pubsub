@@ -21,6 +21,7 @@ import java.util.function.Consumer;
 public class CollectionWatcher implements Closeable {
 
   private final Thread executor;
+  private final Waiter waiter;
 
   public CollectionWatcher(MongoPubSubClient client) {
     ChangeStreamIterable<Document> observer = client.publishers()
@@ -55,6 +56,7 @@ public class CollectionWatcher implements Closeable {
           }
         }));
 
+    waiter = new Waiter();
     executor.start();
   }
 
@@ -63,10 +65,26 @@ public class CollectionWatcher implements Closeable {
     return executor;
   }
 
+  @Nonnull
+  public Waiter waiter() {
+    synchronized (executor) {
+      return waiter;
+    }
+  }
+
   @Override
   public void close() {
     synchronized (executor) {
-      executor.interrupt();
+      synchronized (waiter) {
+        if (waiter.isAwaitTermination()) {
+          try {
+            Thread.sleep(1000L);
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
+        executor.interrupt();
+      }
     }
   }
 
