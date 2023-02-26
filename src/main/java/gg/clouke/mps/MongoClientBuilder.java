@@ -7,6 +7,29 @@ import java.net.URI;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * A builder of {@link MongoPubSubClient} instances.
+ *
+ * <p>Example usage:
+ *  <pre>{@code
+ *    MongoPubSubClient client = MongoPubSubClient.newBuilder()
+ *      .host("localhost")
+ *      .port(27017)
+ *      .database("test")
+ *      .username("root")
+ *      .password("root")
+ *      .flushAfterWrite(5L, TimeUnit.SECONDS)
+ *      .build();
+ *  }</pre>
+ *
+ *  <p>Optionally, you can use a URI to connect to the database:
+ *  <pre>{@code
+ *  MongoPubSubClient client = MongoPubSubClient.newBuilder()
+ *    .uri("mongodb://root:root@localhost:27017/test")
+ *    .database("test")
+ *    .flushAfterWrite(5L, TimeUnit.SECONDS)
+ *    .build();
+ *  }</pre>
+ *
  * @author Clouke
  * @since 24.02.2023 09:43
  * © mongo-pubsub - All Rights Reserved
@@ -15,6 +38,7 @@ public class MongoClientBuilder {
 
   protected long flushAfterWrite = 5L;
   protected TimeUnit flushUnit = TimeUnit.SECONDS;
+  protected boolean clearPreviousIndexes = false;
 
   protected String host;
   protected int port = 27017;
@@ -39,6 +63,11 @@ public class MongoClientBuilder {
     if (flushAfterWrite != 5L)
       throw new IllegalStateException("Cannot disable flushing after it has been enabled.");
     this.flushAfterWrite = -1L;
+    return this;
+  }
+
+  public MongoClientBuilder clearPreviousIndexes() {
+    this.clearPreviousIndexes = true;
     return this;
   }
 
