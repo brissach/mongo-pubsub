@@ -95,6 +95,12 @@ public final class MongoPubSubClient implements Closeable {
     return this;
   }
 
+  public long flush() {
+    long size = publishers.countDocuments();
+    publishers.drop();
+    return size;
+  }
+
   public void enqueue(@Nonnull String target, Payload payload) {
     Requisites.requireNonNull(target, "target cannot be null.");
     Document document = payload.asDocument()
