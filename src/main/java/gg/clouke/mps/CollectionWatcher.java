@@ -65,6 +65,7 @@ public class CollectionWatcher implements Closeable {
             }
           }
         }));
+
     executor.start();
   }
 
