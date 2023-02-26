@@ -11,6 +11,10 @@ import gg.acai.acava.commons.graph.Graph;
 @Beta
 public interface Statistics {
 
+  static StatisticsBuilder newBuilder() {
+    return new StatisticsBuilder();
+  }
+
   Graph<Number> network();
 
 }
