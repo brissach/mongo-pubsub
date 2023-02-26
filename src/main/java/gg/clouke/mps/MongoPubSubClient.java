@@ -165,7 +165,7 @@ public final class MongoPubSubClient implements Closeable {
   /**
    * Flushes the publishers collection.
    *
-   * @return the size of the collection before flushing.
+   * @return the size of the collection before flushing, or -1 if an error occurred.
    */
   public long flush() {
     long size = -1L;
