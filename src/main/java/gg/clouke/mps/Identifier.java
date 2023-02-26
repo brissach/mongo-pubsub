@@ -1,5 +1,7 @@
 package gg.clouke.mps;
 
+import gg.acai.acava.annotated.Required;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -24,6 +26,7 @@ import java.lang.annotation.Target;
  */
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
+@Required
 public @interface Identifier {
   /**
    * Gets the identifier of the subscriber.
