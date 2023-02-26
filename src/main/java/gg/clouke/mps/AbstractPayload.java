@@ -40,7 +40,6 @@ public abstract class AbstractPayload implements Closeable {
 
   protected final Map<String, String> parameters;
 
-  @SuppressWarnings("unchecked")
   public AbstractPayload(String json) {
     this.parameters = DECODER.encode(json);
   }
