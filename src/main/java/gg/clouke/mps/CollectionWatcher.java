@@ -6,10 +6,10 @@ import com.mongodb.client.model.changestream.ChangeStreamDocument;
 import com.mongodb.client.model.changestream.FullDocument;
 import com.mongodb.client.model.changestream.OperationType;
 import gg.acai.acava.io.Closeable;
+import gg.clouke.mps.codec.Encoder;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
-import java.util.Date;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
@@ -19,6 +19,14 @@ import java.util.function.Consumer;
  * © mongo-pubsub - All Rights Reserved
  */
 public class CollectionWatcher implements Closeable {
+
+  private static final Encoder<Document, String> ENCODER =
+    new Encoder<Document, String>() {
+      @Override
+      public String encode(Document document) {
+        return document.toJson();
+      }
+    };
 
   private final Thread executor;
   private final Waiter waiter;
@@ -44,7 +52,8 @@ public class CollectionWatcher implements Closeable {
             return;
 
           if (operationType == OperationType.INSERT) {
-            Payload payload = new Payload(document.toJson());
+            String parameters = ENCODER.encode(document);
+            Payload payload = new Payload(parameters);
             String target = document.getString("payload:target");
             client.subscribers().dispatch(target, payload);
             // TODO: Add to graph statistics
