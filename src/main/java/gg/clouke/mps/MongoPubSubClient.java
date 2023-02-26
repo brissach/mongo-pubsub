@@ -54,6 +54,10 @@ public final class MongoPubSubClient implements Closeable {
       .getDatabase(b.database)
       .getCollection("publishers");
 
+    if (b.clearPreviousIndexes) {
+      publishers.dropIndex(Indexes.ascending("payload:send"));
+    }
+
     if (b.flushAfterWrite != -1L) {
       publishers.createIndex(Indexes
         .ascending("payload:send"), new IndexOptions()
