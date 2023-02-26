@@ -3,7 +3,6 @@ package gg.clouke.mps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import gg.acai.acava.caches.CacheLoader;
 
 import java.util.Map;
 
@@ -17,7 +16,6 @@ import java.util.Map;
 public final class GsonSpec {
 
   private static final TypeToken<Map<String, String>> PAYLOAD_TOKEN = new TypeToken<Map<String, String>>(){};
-  private static final TypeToken<CacheLoader> CACHE_LOADER_TOKEN = new TypeToken<CacheLoader>(){};
   private static final Gson GSON = new Gson();
   private static final Gson PRETTY_PRINTING_GSON = new GsonBuilder()
     .setPrettyPrinting()
@@ -39,15 +37,6 @@ public final class GsonSpec {
    */
   public static Gson getGson() {
     return GSON;
-  }
-
-  /**
-   * Gets the TypeToken for the CacheLoader class.
-   *
-   * @return the TypeToken for the CacheLoader class.
-   */
-  public static TypeToken<CacheLoader> getCacheLoaderToken() {
-    return CACHE_LOADER_TOKEN;
   }
 
   /**
