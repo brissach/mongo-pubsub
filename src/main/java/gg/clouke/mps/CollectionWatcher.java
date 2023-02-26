@@ -34,6 +34,7 @@ public class CollectionWatcher implements Closeable {
       .setUncaughtExceptionHandler(new ThreadInterrupter())
       .build();
 
+    waiter = new Waiter();
     executor = factory.newThread(() ->
       observer.forEach((Consumer<? super ChangeStreamDocument<Document>>)
         change -> {
@@ -46,17 +47,14 @@ public class CollectionWatcher implements Closeable {
             Payload payload = new Payload(document.toJson());
             String target = document.getString("payload:target");
             client.subscribers().dispatch(target, payload);
-            Date date = document.getDate("payload:send");
-            if (date != null) {
-              long time = date.getTime();
-              long now = System.currentTimeMillis();
-              long diff = now - time;
-              System.out.println("Dispatched " + payload + " to " + target + " after " + diff + "ms");
+            if (waiter.isAwaitTermination()) {
+              waiter.reset();
+              synchronized (waiter) {
+                waiter.notifyAll();
+              }
             }
           }
         }));
-
-    waiter = new Waiter();
     executor.start();
   }
 
