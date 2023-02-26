@@ -9,6 +9,7 @@ import gg.acai.acava.io.Closeable;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
+import java.util.Date;
 import java.util.concurrent.ThreadFactory;
 import java.util.function.Consumer;
 
@@ -35,8 +36,6 @@ public class CollectionWatcher implements Closeable {
     executor = factory.newThread(() ->
       observer.forEach((Consumer<? super ChangeStreamDocument<Document>>)
         change -> {
-        try {
-
           OperationType operationType = change.getOperationType();
           Document document = change.getFullDocument();
           if (document == null)
@@ -44,11 +43,16 @@ public class CollectionWatcher implements Closeable {
 
           if (operationType == OperationType.INSERT) {
             Payload payload = new Payload(document.toJson());
-            client.subscribers().dispatch(document.getString("payload:target"), payload);
+            String target = document.getString("payload:target");
+            client.subscribers().dispatch(target, payload);
+            Date date = document.getDate("payload:send");
+            if (date != null) {
+              long time = date.getTime();
+              long now = System.currentTimeMillis();
+              long diff = now - time;
+              System.out.println("Dispatched " + payload + " to " + target + " after " + diff + "ms");
+            }
           }
-        } catch (Exception e) {
-          e.printStackTrace();
-        }
         }));
 
     executor.start();
@@ -72,8 +76,9 @@ public class CollectionWatcher implements Closeable {
       public void uncaughtException(Thread t, Throwable e) {
         System.err.println("Thread " +
           t.getName() +
-          " threw an exception: " +
-          e.getMessage());
-        }
+          " threw an exception: "
+        );
+        e.printStackTrace();
+      }
     }
 }
